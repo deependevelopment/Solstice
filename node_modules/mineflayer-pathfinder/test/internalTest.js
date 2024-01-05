@@ -426,11 +426,11 @@ describe('pathfinder util functions', function () {
       bot.pathfinder.setGoal(new goals.GoalGetToBlock(targetBlock.x, targetBlock.y, targetBlock.z))
       const foo = () => {
         if (bot.pathfinder.isMoving()) {
-          bot.removeListener('physicTick', foo)
+          bot.removeListener('physicsTick', foo)
           done()
         }
       }
-      bot.on('physicTick', foo)
+      bot.on('physicsTick', foo)
     })
 
     // Note: Ordering seams to matter when running the isBuilding test. If run after isMining isBuilding does not seam to work.
@@ -441,12 +441,12 @@ describe('pathfinder util functions', function () {
       bot.pathfinder.setGoal(new goals.GoalBlock(targetBlock.x, targetBlock.y + 2, targetBlock.z))
       const foo = () => {
         if (bot.pathfinder.isBuilding()) {
-          bot.removeListener('physicTick', foo)
+          bot.removeListener('physicsTick', foo)
           bot.stopDigging()
           done()
         }
       }
-      bot.on('physicTick', foo)
+      bot.on('physicsTick', foo)
     })
 
     it('isMining', function (done) {
@@ -456,12 +456,12 @@ describe('pathfinder util functions', function () {
       bot.pathfinder.setGoal(new goals.GoalBlock(targetBlock.x, targetBlock.y, targetBlock.z))
       const foo = () => {
         if (bot.pathfinder.isMining()) {
-          bot.removeListener('physicTick', foo)
+          bot.removeListener('physicsTick', foo)
           bot.stopDigging()
           done()
         }
       }
-      bot.on('physicTick', foo)
+      bot.on('physicsTick', foo)
     })
   })
 
@@ -706,8 +706,8 @@ describe('Physics test', function () {
 
     // Wait for the bot to be on the ground so bot.entity.onGround == true
     bot.clearControlStates()
-    await once(bot, 'physicTick')
-    await once(bot, 'physicTick')
+    await once(bot, 'physicsTick')
+    await once(bot, 'physicsTick')
 
     const physics = new Physics(bot)
 
@@ -722,11 +722,11 @@ describe('Physics test', function () {
     const state = physics.simulateUntil(() => false, controller, ticksToSimulate)
     simulatedSteps.push(state.pos.toString() + ' Input:false')
 
-    // We have to be carful to not mess up the event scheduling. for await on(bot, 'physicTick') seams to work.
-    // A for loop with just await once(bot, 'physicTick') does not always seam to work. What also works is attaching
-    // a listener to bot with bot.on('physicTick', listener) but this is a lot nicer.
+    // We have to be carful to not mess up the event scheduling. for await on(bot, 'physicsTick') seams to work.
+    // A for loop with just await once(bot, 'physicsTick') does not always seam to work. What also works is attaching
+    // a listener to bot with bot.on('physicsTick', listener) but this is a lot nicer.
     let tick = 0
-    for await (const _ of on(bot, 'physicTick')) { // eslint-disable-line no-unused-vars
+    for await (const _ of on(bot, 'physicsTick')) { // eslint-disable-line no-unused-vars
       bot.setControlState('forward', tick <= ticksPressForward)
       bot.setControlState('jump', tick <= ticksPressForward)
       realSteps.push(bot.entity.position.toString() + ' Input:' + String(tick <= ticksPressForward))

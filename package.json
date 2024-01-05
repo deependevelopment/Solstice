@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mineflayer-collectblock": "^1.4.1"
+    "mineflayer-auto-eat": "^3.3.6",
+    "mineflayer-collectblock": "^1.4.1",
+    "mineflayer-web-inventory": "^1.8.4"
   }
 }
