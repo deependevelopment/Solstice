@@ -4,6 +4,7 @@ const inventoryViewer = require('mineflayer-web-inventory')
 const pvp = require('mineflayer-pvp').plugin
 const autoeat = require('mineflayer-auto-eat').plugin
 const settings = require('./config.json')
+const fs = require('fs')
 
 if (!settings.ip) {
   console.error('settings.ip is required. Please fill out the IP field in the config.json file. Error 100');
@@ -23,6 +24,12 @@ if (!settings.auth) {
 // const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 // const GoalFollow = goals.GoalFollow
 
+function getRandomItem(arr) {
+  const randomIndex = Math.floor(Math.random() * arr.length);
+  const item = arr[randomIndex];
+  return item;
+}
+
 function version() {
   if (settings.version === undefined) {
     return "1.20.1";
@@ -34,11 +41,12 @@ const bot = mineflayer.createBot({
   host: settings.ip,
   username: settings.name,
   version: version(),
+  // port: settings.port
 })
 
 bot.loadPlugin(pathfinder)
-bot.loadPlugin(autoeat)
 bot.loadPlugin(pvp)
+bot.loadPlugin(autoeat)
 bot.loadPlugin(require('mineflayer-collectblock').plugin)
 // bot.loadPlugin(pathfinder)
 
@@ -57,12 +65,9 @@ const password = settings.password
 const login = `/login ${password}`
 
 const { mineflayer: mineflayerViewer } = require('prismarine-viewer');
-const { setInterval } = require('timers/promises');
+const { setIntqerval } = require('timers/promises');
 
 bot.once('spawn', () => {
-  bot.autoEat.options.priority = 'foodPoints'
-  bot.autoEat.options.startAt = 17
-  bot.autoEat.options.bannedFood.push('enchanted_golden_apple')
   mineflayerViewer(bot, { port: 3007, firstPerson: true }) // port is the minecraft server port, if first person is false, you get a bird's-eye view
   inventoryViewer(bot);
   if (settings.auth === "registered") {
@@ -81,21 +86,29 @@ bot.once('spawn', () => {
   rl.prompt();
 
   bot.on('message', (message) => {
-    console.log(message.toAnsi());
+    if (settings.ip === "Minezilla.info.gf") return;
+    console.log(`${message.toAnsi()}`);
     rl.prompt();
+    const date = new Date();
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let currentDate = `${day}/${month}/${year}`;
+    // const fileExists = fs.existsSync(`./chatlogs/${currentDate}`);
+    // fs.existsSync(`./chatlogs/${currentDate}`) ? fs.appendFileSync(`./chatlogs/${currentDate}, message.text`) : fs.writeFileSync(`./chatlogs/${currentDate}`, message.text);
   })
   rl.on('line', (line) => {
     if (line.toString() === 'playerlist') {
       const playerList = Object.keys(bot.players).join(", ")
       console.log(playerList)
     } else {
-      readline.moveCursor(process.stdout, 0, -1);
+      readline.moveCursor(process.stdout, 0, 0);
       readline.clearScreenDown(process.stdout);
       bot.chat(line.toString());
     }
   })
   bot.on('chat', (username, message) => {
-    if (message === 'fight me') {
+    if (message === 'follow me') {
       const player = bot.players[username]
   
       if (!player) {
@@ -106,9 +119,87 @@ bot.once('spawn', () => {
     }
   })
   bot.on('whisper', (username, message) => {
-    if (message === ',use') {
-      bot.chat('Using Item');
-      bot.activateItem();
+    function randomTask() {
+      const tasks = [
+        'Find Diamond Ore [Medium]',
+        'Find a Pillager Outpost [Hard]',
+        'Make a Potion Of Turtle Master without looking at any online resources [Medium]',
+        `Error - You are so fucking bad at Minecraft I couldn't find any tasks for you`,
+        `Breed 2 Chickens`,
+        `build to y lvl 200`,
+        `Make gold helmet`,
+        `Kill the other player`,
+        `Build a "M" with soul sand`,
+        `Reach y level 5`,
+        `Eat 1 rotten flesh`,
+        `Tame a horse`,
+        `Die`,
+        `Open a book in a lectern`,
+        `Grow one wheat seed`,
+        `Get an apple`,
+        `Get a cooked salmon`,
+        `Get any mob in a hole`,
+        `Build a 4x4 concrete wall`,
+        `Survive an apocalypse`,
+        `survive a 30 block jump`,
+        `Kill an iron golem`,
+        `Find a Village`,
+        `Death Run`,
+        `Get a fish in a bucket`,
+        `Hide or seek`,
+        `Make a cake and eat it`,
+        `Hit a target 50 blocks away`,
+        `Take nausea effect`,
+        `Make a full set of iron tools`,
+        `Make a jukebox`,
+        `Get a rabbit's foot`,
+        `Die`,
+        `Craft a piece of wool`,
+        `Get an orange baby sheep`,
+        `Craft a diamond hoe`,
+        `Deflect a ghast's ball`,
+        `Get a music disc`,
+        `Craft a hay bale`,
+        `Spin again`,
+        `Craft a clock`,
+        `Brew a fire res potion`,
+        `Build a 4x4 mossy cobble wall`,
+        `Cure a zombie villager`,
+        `Craft one eye of ender `,
+        `Kill the other player `,
+        `Spin again`,
+        `Ring a bell`,
+        `Craft a redstone lamp`,
+        `Obtain either a red or brown mushroom`,
+        `Fill inventory`,
+        `Craft a magma block`,
+        `Craft black stained glass`,
+        `50 block height 360 MLG`,
+        `Obtain a honey bottle`,
+        `Turn off fire with splash water`,
+        `Spin again`,
+        `Craft a fletching table `,
+        `Craft a geography table`,
+        `Make a purple bed`,
+        `Eat a berry`,
+        `Obtain pink glazed terracotta `,
+        `Craft a firework`,
+        `Kill the other player`,
+        `Obtain a trident`,
+        `Burp`,
+        `Craft 8 nether bricks`,
+        `Craft warped or crimson hyphae`,
+        `Craft a nether wart block`,
+        `Craft a full set of iron armour`
+      ]
+      const randomTask = getRandomItem(tasks);
+      const time = Math.floor(Math.random() * 6);
+      const msg = `Here's your task: ${randomTask}. You have ${time} minutes to do it.`;
+      return msg;
+      
+    }
+    if (message === 'task') {
+      bot.chat(`/w ${username} ${randomTask()}`);
     }
     function cCmd(extraParams) {
       if (!extraParams) {
@@ -332,10 +423,10 @@ bot.once('spawn', () => {
       }
       dropItem(itemToDrop);
     }
-    if (cCmd() === true && username === settings.allowedppl.includes(username)) {
+    if (cCmd() === true && username === 'Hitrocol') {
       bot.chat(`/msg ${username} done!`)
       bot.chat(message.split(',do ')[1]);
-      console.log(`${username} issued command: \`${message}\``);
+      console.log(`Hitrocol issued command: \`${message}\``);
     }
     if (message.startsWith('[Discord | Member] Hitrocol » ,do ')) {
       bot.chat(message.split(',do ')[1]);
@@ -558,7 +649,7 @@ bot.once('spawn', () => {
       }
       execute()
     }
-    if (cCmd() === true && username === settings.allowedppl.includes(username)) {
+    if (cCmd() === true && username === 'Hitrocol') {
       bot.chat(`/msg ${username} done!`)
       bot.chat(message.split(',do ')[1]);
       console.log(`Hitrocol issued command: \`${message}\``);
