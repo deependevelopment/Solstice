@@ -1,3 +1,3 @@
 # MCBOT
-idk lmao
-A piece of Trash
+idk lmao  
+## A piece of Trash
