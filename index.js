@@ -119,6 +119,45 @@ bot.once('spawn', () => {
     }
   })
   bot.on('whisper', (username, message) => {
+    function smeltItems(smeltingItem) {
+      // Replace 'your_item_to_smelt' with the item you want to smelt
+      const itemToSmelt = bot.inventory.items().find(item => item.name === smeltingItem);
+      const fuelItem = bot.inventory.items().find(item => item.name === 'coal');
+      const furnaceID = bot.registry.blocksByName.furnace.id
+    
+      if (itemToSmelt && fuelItem) {
+        const furnace = bot.findBlock({
+          matching: furnaceID,
+          customName: 'your_furnace'
+        });
+    
+        if (furnace) {
+          bot.lookAt(furnace.position.offset(0.5, 0.5, 0.5));
+          bot.activateBlock(furnace);
+    
+          bot.on('windowOpen', () => {
+            const furnaceWindow = bot.currentWindow;
+    
+            // Check if the fuel slot is available in the furnace window
+            const fuelSlot = furnaceWindow.slots.find(slot => slot && slot.fuel);
+            
+            if (fuelSlot) {
+              bot.clickWindow(fuelItem.slot, 0, 0); // Place fuel in the furnace
+              bot.clickWindow(itemToSmelt.slot, 0, 0); // Place item to smelt in the furnace
+            }
+          });
+        } else {
+          console.log('Furnace not found.');
+        }
+      } else {
+        console.log('Item to smelt or suitable fuel not found in inventory.');
+      }
+    }
+    if (message.startsWith(',smeltitem')) {
+      const args = message.split(' ');
+      const itemToSmelt = args[1];
+      smeltItems(itemToSmelt);
+    }
     function randomTask() {
       const tasks = [
         'Find Diamond Ore [Medium]',
