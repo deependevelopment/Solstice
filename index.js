@@ -3,6 +3,7 @@ const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const inventoryViewer = require('mineflayer-web-inventory')
 const pvp = require('mineflayer-pvp').plugin
 const autoeat = require('mineflayer-auto-eat').plugin
+const armorManager = require("mineflayer-armor-manager");
 const settings = require('./config.json')
 const fs = require('fs')
 
@@ -47,6 +48,7 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(pathfinder)
 bot.loadPlugin(pvp)
 bot.loadPlugin(autoeat)
+bot.loadPlugin(armorManager)
 bot.loadPlugin(require('mineflayer-collectblock').plugin)
 // bot.loadPlugin(pathfinder)
 
@@ -84,7 +86,6 @@ bot.once('spawn', () => {
   });
   rl.setPrompt('> ');
   rl.prompt();
-
   bot.on('message', (message) => {
     if (settings.ip === "Minezilla.info.gf") return;
     console.log(`${message.toAnsi()}`);
@@ -102,20 +103,9 @@ bot.once('spawn', () => {
       const playerList = Object.keys(bot.players).join(", ")
       console.log(playerList)
     } else {
-      readline.moveCursor(process.stdout, 0, 0);
+      readline.moveCursor(process.stdout, 0, 9999);
       readline.clearScreenDown(process.stdout);
       bot.chat(line.toString());
-    }
-  })
-  bot.on('chat', (username, message) => {
-    if (message === 'follow me') {
-      const player = bot.players[username]
-  
-      if (!player) {
-        bot.chat("I can't see you.");
-        return;
-      }
-      bot.pvp.attack(player.entity);
     }
   })
   bot.on('whisper', (username, message) => {
@@ -152,6 +142,25 @@ bot.once('spawn', () => {
       } else {
         console.log('Item to smelt or suitable fuel not found in inventory.');
       }
+    }
+    if (message.startsWith(',friendAdd ')) {
+      const args = message.split(' ');
+      const friendUsername = args[1];
+      const pos = message.split(' ?p ')[1];
+      if (!friendUsername) return bot.chat("Please enter a username for your friend.")
+      if (!pos) return bot.chat('Please specify a position for the user.') 
+      fs.appendFile(`friends/${username}.txt`, `${friendUsername}, ${pos}\n`, function (err) {
+        if (err) throw err;
+        console.log('File is created successfully.');
+      });
+    }
+    if (message.startsWith(',friendsList')) {
+      const args = message.split(' ');
+      const userToSearch = args[1];
+      fs.readFile(`friends/${userToSearch}.txt`, (err, data) => {
+        if (data === undefined) return bot.chat(`/whisper ${username} The username was not found in the Database.`);
+        bot.chat(`/whisper ${username} ${data.toString().replace(/\n/g, ', ')}`);
+      })
     }
     if (message.startsWith(',smeltitem')) {
       const args = message.split(' ');
@@ -480,6 +489,15 @@ bot.once('spawn', () => {
   })
   bot.on('chat', (username, message) => {
     bot.acceptResourcePack()
+    if (message === 'follow me') {
+      const player = bot.players[username]
+  
+      if (!player) {
+        bot.chat("I can't see you.");
+        return;
+      }
+      bot.pvp.attack(player.entity);
+    }
     function cCmd(extraParams) {
       if (!extraParams    ) {
         if (message.startsWith(prefix)) {
@@ -702,6 +720,14 @@ bot.once('spawn', () => {
     }
     if (cCmd("_logout")) {
       bot.chat('/logout')
+    }
+    if (message === "equip armour") {
+      bot.armorManager.equipAll()
+    }
+    if (message === "eat") {
+      const foodItem = bot.inventory.items().find(item => item.name.includes('cooked_beef'))
+      bot.equip(foodItem, "off-hand")
+      bot.activateItem(offhand=true);
     }
   })
 })
